@@ -24,12 +24,12 @@ def get_detector_path_and_im_size(args) -> Tuple[str, Tuple[int, int]]:
 class GeneralSettings:
     values: Dict[str, Union[float, bool, int, str]] = {
         'max_age': 30,
-        'min_hits': 3,
-        'det_thresh': 0.5,
-        'iou_threshold': 0.3,
+        'min_hits': 1,
+        'det_thresh': 0.3,
+        'iou_threshold': 0.1,
         'use_ecc': True,
-        'use_embedding': True,
-        'dataset': 'mot17',
+        'use_embedding': False,
+        'dataset': 'mot20',
         'test_dataset': False,
         'min_box_area': 10,
         'aspect_ratio_thresh': 1.6

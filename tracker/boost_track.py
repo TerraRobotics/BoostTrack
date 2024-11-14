@@ -10,11 +10,11 @@ from typing import Optional, List
 import cv2
 import numpy as np
 
-from default_settings import GeneralSettings, BoostTrackSettings, BoostTrackPlusPlusSettings
-from tracker.embedding import EmbeddingComputer
-from tracker.assoc import associate, iou_batch, MhDist_similarity, shape_similarity, soft_biou_batch
-from tracker.ecc import ECC
-from tracker.kalmanfilter import KalmanFilter
+from BoostTrack.default_settings import GeneralSettings, BoostTrackSettings, BoostTrackPlusPlusSettings
+# from tracker.embedding import EmbeddingComputer
+from BoostTrack.tracker.assoc import associate, iou_batch, MhDist_similarity, shape_similarity, soft_biou_batch
+from BoostTrack.tracker.ecc import ECC
+from BoostTrack.tracker.kalmanfilter import KalmanFilter
 
 
 def convert_bbox_to_z(bbox):
@@ -146,10 +146,11 @@ class BoostTrack(object):
         self.use_sb = BoostTrackPlusPlusSettings['use_sb']
         self.use_vt = BoostTrackPlusPlusSettings['use_vt']
 
-        if GeneralSettings['use_embedding']:
-            self.embedder = EmbeddingComputer(GeneralSettings['dataset'], GeneralSettings['test_dataset'], True)
-        else:
-            self.embedder = None
+        # if GeneralSettings['use_embedding']:
+        #     self.embedder = EmbeddingComputer(GeneralSettings['dataset'], GeneralSettings['test_dataset'], True)
+        # else:
+        #     self.embedder = None
+        self.embedder = None
 
         if GeneralSettings['use_ecc']:
             self.ecc = ECC(scale=350, video_name=video_name, use_cache=True)
