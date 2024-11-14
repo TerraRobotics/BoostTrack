@@ -36,7 +36,8 @@ def shape_similarity_v2(detects: np.ndarray, tracks: np.ndarray) -> np.ndarray:
 
 
 def MhDist_similarity(mahalanobis_distance: np.ndarray, softmax_temp: float = 1.0) -> np.ndarray:
-    limit = 13.2767  # 99% conf interval https://www.mathworks.com/help/stats/chi2inv.html
+    # limit = 13.2767  # 99% conf interval https://www.mathworks.com/help/stats/chi2inv.html
+    limit = 9.4877  # from BoostTrack paper
     mahalanobis_distance = deepcopy(mahalanobis_distance)
     mask = mahalanobis_distance > limit
     mahalanobis_distance[mask] = limit
@@ -98,6 +99,44 @@ def soft_biou_batch(bboxes1, bboxes2):
 
     b1y2 = bboxes1[..., 3] + (bboxes1[..., 3]-bboxes1[..., 1]) * (1-b2conf)*k1
     b2y2 = bboxes2[..., 3] + (bboxes2[..., 3]-bboxes2[..., 1]) * (1-b2conf)*k2
+    yy2 = np.minimum(b1y2, b2y2)
+
+    w = np.maximum(0.0, xx2 - xx1)
+    h = np.maximum(0.0, yy2 - yy1)
+    wh = w * h
+
+    o = wh / (
+        (b1x2 - b1x1) * (b1y2 - b1y1)
+        + (b2x2 - b2x1) * (b2y2 - b2y1)
+        - wh
+    )
+
+    return o
+
+
+def custom_soft_biou_batch(bboxes1, bboxes2):
+   
+    bboxes2 = np.expand_dims(bboxes2, 0)
+    bboxes1 = np.expand_dims(bboxes1, 1)
+    kx1 = 2
+    kx2 = 4
+    ky1 = 4  # 2
+    ky2 = 8  # 4
+    b2conf = bboxes2[..., 4]
+    b1x1 = bboxes1[..., 0] - (bboxes1[..., 2]-bboxes1[..., 0]) * (1-b2conf)*kx1
+    b2x1 = bboxes2[..., 0] - (bboxes2[..., 2]-bboxes2[..., 0]) * (1-b2conf)*kx2
+    xx1 = np.maximum(b1x1, b2x1)
+
+    b1y1 = bboxes1[..., 1] - (bboxes1[..., 3]-bboxes1[..., 1]) * (2-b2conf)*ky1
+    b2y1 = bboxes2[..., 1] - (bboxes2[..., 3]-bboxes2[..., 1]) * (2-b2conf)*ky2
+    yy1 = np.maximum(b1y1, b2y1)
+
+    b1x2 = bboxes1[..., 2] + (bboxes1[..., 2]-bboxes1[..., 0]) * (1-b2conf)*kx1
+    b2x2 = bboxes2[..., 2] + (bboxes2[..., 2]-bboxes2[..., 0]) * (1-b2conf)*kx2
+    xx2 = np.minimum(b1x2, b2x2)
+
+    b1y2 = bboxes1[..., 3] + (bboxes1[..., 3]-bboxes1[..., 1]) * (2-b2conf)*ky1
+    b2y2 = bboxes2[..., 3] + (bboxes2[..., 3]-bboxes2[..., 1]) * (2-b2conf)*ky2
     yy2 = np.minimum(b1y2, b2y2)
 
     w = np.maximum(0.0, xx2 - xx1)
@@ -182,7 +221,7 @@ def associate(
             np.empty((0, 5), dtype=int),
             np.empty((0, 0))
         )
-    iou_matrix = iou_batch(detections, trackers)
+    iou_matrix = custom_soft_biou_batch(detections, trackers)
 
     cost_matrix = deepcopy(iou_matrix)
 
@@ -190,7 +229,7 @@ def associate(
         conf = np.multiply(detection_confidence.reshape((-1, 1)), track_confidence.reshape((1, -1)))
         conf[iou_matrix < iou_threshold] = 0
 
-        cost_matrix += lambda_iou * conf * iou_batch(detections, trackers)
+        cost_matrix += lambda_iou * conf * custom_soft_biou_batch(detections, trackers)
     else:
         warnings.warn("Detections or tracklet confidence is None and detection-tracklet confidence cannot be computed!")
         conf = None

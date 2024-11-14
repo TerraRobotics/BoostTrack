@@ -27,12 +27,12 @@ class GeneralSettings:
         'min_hits': 1,
         'det_thresh': 0.3,
         'iou_threshold': 0.1,
-        'use_ecc': True,
+        'use_ecc': False,
         'use_embedding': False,
-        'dataset': 'mot20',
+        'dataset': 'custom',
         'test_dataset': False,
         'min_box_area': 10,
-        'aspect_ratio_thresh': 1.6
+        'aspect_ratio_thresh': 2.5
     }
 
     dataset_specific_settings: Dict[str, Dict[str, Union[float, bool, int]]] = {
@@ -76,12 +76,12 @@ class GeneralSettings:
 class BoostTrackSettings:
     values: Dict[str, Union[float, bool, int, str]] = {
         'lambda_iou': 0.5,  # 0 to turn off
-        'lambda_mhd': 0.25,  # 0 to turn off
-        'lambda_shape': 0.25,  # 0 to turn off
+        'lambda_mhd': 0.0,  # 0 to turn off
+        'lambda_shape': 2.0,  # 0 to turn off
         'use_dlo_boost': True,  # False to turn off
         'use_duo_boost': True,  # False to turn off
         'dlo_boost_coef': 0.6,  # Irrelevant if use_dlo_boost == False
-        's_sim_corr': False  # Which shape similarity function should be used (True == corrected version)
+        's_sim_corr': True  # Which shape similarity function should be used (True == corrected version)
     }
     dataset_specific_settings: Dict[str, Dict[str, Union[float, bool, int]]] = {
         "mot17": {"dlo_boost_coef": 0.65},
